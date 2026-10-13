@@ -1,0 +1,18 @@
+# install torch first, matching the server's CUDA (see nvidia-smi)
+torch
+numpy
+transformers<5
+peft
+bitsandbytes
+accelerate
+datasets
+evaluate
+lm_eval<0.5
+tqdm
+pyparsing
+
+# only for --dataset EdinburghNLP/xsum (rouge metric)
+rouge_score
+
+# only for --dataset humaneval/mbpp; not on PyPI
+# bigcode_eval @ git+https://github.com/bigcode-project/bigcode-evaluation-harness.git

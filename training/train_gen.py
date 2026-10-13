@@ -52,6 +52,20 @@ def parse_args():
         type=float,
         default=2e-4
     )
+    parser.add_argument(
+        "--max_steps",
+        type=int,
+        default=-1  # -1 = run all num_train_epochs; set >0 to cap training length
+    )
+    parser.add_argument(
+        "--save_steps",
+        type=int,
+        default=1000
+    )
+    parser.add_argument(
+        "--resume",
+        action='store_true'  # resume from latest checkpoint in output_dir
+    )
     args = parser.parse_args()
     return args
 
@@ -116,7 +130,7 @@ def main():
     # os.environ["WANDB_MODE"] = "offline"
     
     ### load model ###
-    access_token = "replace with huggingface token to access gated models"
+    access_token = os.environ.get("HF_TOKEN")  # None -> falls back to cached `hf auth login` token
     compute_dtype = getattr(torch, "float16")
     bnb_config = BitsAndBytesConfig(load_in_4bit=True,
                 bnb_4bit_quant_type="nf4",
@@ -148,14 +162,15 @@ def main():
 
     training_args = TrainingArguments(
             output_dir=args.output_dir,
-            eval_strategy="steps",
+            eval_strategy="no",  # was "steps" w/ eval_steps=7000 on full gsm8k test; eval separately via main.py
             optim="adamw_torch",
-            save_strategy="epoch",
+            save_strategy="steps",  # was "epoch"; step saves survive slurm time limits
+            save_steps=args.save_steps,
+            max_steps=args.max_steps,
             log_level="debug",
             logging_steps=10,
-            eval_steps=7000,
             fp16=True,
-            do_eval=True,
+            do_eval=False,
             per_device_train_batch_size=args.batch_size,
             per_device_eval_batch_size=args.batch_size,
             warmup_ratio=0.03,
@@ -180,7 +195,7 @@ def main():
         data_collator=data_collator
     )
 
-    trainer.train()
+    trainer.train(resume_from_checkpoint=args.resume or None)
 
     # Save the model
     trainer.save_model(args.output_dir)

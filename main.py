@@ -94,6 +94,12 @@ def parse_args():
         type=float,
         default=0.1
     )
+
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None  # lm_eval only: cap # of eval examples for smoke tests; None = full dataset
+    )
     
     args = parser.parse_args()
     return args
@@ -222,7 +228,7 @@ def main():
     args = parse_args()
     random.seed(42)
     ## load model ##
-    access_token = "replace with huggingface token to access gated models"
+    access_token = os.environ.get("HF_TOKEN")  # None -> falls back to cached `hf auth login` token
     
     compute_dtype = getattr(torch, "float16")
     bnb_config = BitsAndBytesConfig(
@@ -409,6 +415,7 @@ def main():
                 model=hf_lm,
                 tasks=[args.dataset],
                 num_fewshot=args.num_fewshot,
+                limit=args.limit,
                 batch_size=1,
                 device="cuda"
         )

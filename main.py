@@ -219,10 +219,11 @@ def get_output_name(args):
     return output_path
     
 def main():
+    print("RUNNING LQ:\n")
     args = parse_args()
     random.seed(42)
     ## load model ##
-    access_token = "replace with huggingface token to access gated models"
+    access_token = os.environ.get("HF_TOKEN")
     
     compute_dtype = getattr(torch, "float16")
     bnb_config = BitsAndBytesConfig(
@@ -409,7 +410,7 @@ def main():
                 model=hf_lm,
                 tasks=[args.dataset],
                 num_fewshot=args.num_fewshot,
-                batch_size=1,
+                batch_size=32,
                 device="cuda"
         )
 

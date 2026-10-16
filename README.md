@@ -14,7 +14,7 @@ python main.py \
     --adapter_path path_to_adapter_weights \
     --dataset gsm8k \
     --group_size 128 \
-    --method lorauquant_ratio \
+    --method loraquant_ratio \
     --num_bits_low 1 \
     --num_bits_high 2 \
     --ratio 0.8 \
